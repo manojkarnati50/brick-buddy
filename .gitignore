@@ -1,0 +1,22 @@
+# --- privacy: never commit photos of Aaradya, her avatar art, recordings, the database or keys ---
+*.PNG
+*.png
+!frontend/public/*.png
+*.jpg
+*.JPG
+*.jpeg
+*.heic
+*.HEIC
+backend/data/
+data/
+.env
+*.db
+
+# build / tooling
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+.claude/

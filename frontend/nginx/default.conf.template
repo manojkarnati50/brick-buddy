@@ -1,0 +1,22 @@
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+server {
+  listen 8080;
+  listen 8443 ssl;
+  ssl_certificate     /certs/brickbuddy.crt;
+  ssl_certificate_key /certs/brickbuddy.key;
+  client_max_body_size 50m;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location ~ ^/(api|files|ldraw)/ {
+    proxy_pass http://backend:8000;
+    proxy_set_header Host $host;
+    proxy_read_timeout 600s;   # Big Builds can take a few minutes
+  }
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}

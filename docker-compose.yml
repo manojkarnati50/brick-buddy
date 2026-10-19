@@ -1,0 +1,24 @@
+# One command: docker compose up --build
+# Then open http://localhost:8080 (this computer) or https://<this-computer's-IP>:8443 (iPad on home Wi-Fi).
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - ./backend/data:/data          # SQLite, models, thumbnails, private avatar photos — stays on this machine
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    environment:
+      - HOST_IP=${HOST_IP:-}
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - certs:/certs
+    restart: unless-stopped
+
+volumes:
+  certs:

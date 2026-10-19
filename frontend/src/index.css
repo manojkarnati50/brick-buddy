@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light only; /* light backgrounds only — no dark mode anywhere */
+  --cream: #fff8ee;
+  --mint: #ddf2e6;
+  --peach: #ffd9c7;
+  --butter: #fff1b8;
+  --sky: #d6ecff;
+  --ink: #3b3355;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: Chillax, Nunito, ui-rounded, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@layer components {
+  .card {
+    @apply rounded-squish bg-white shadow-squish;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold;
+  }
+  .input {
+    @apply rounded-2xl border-2 border-ink/10 bg-white px-4 py-2 font-semibold outline-none focus:border-brick-blue/50;
+  }
+  .btn-soft {
+    @apply rounded-2xl bg-ink/5 px-4 py-2 font-semibold transition hover:bg-ink/10 active:scale-95 disabled:opacity-40;
+  }
+}
+
+/* LEGO-ish studs on brick buttons */
+.studs {
+  background-image: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.45) 0 34%, rgba(0, 0, 0, 0.12) 35% 46%, transparent 47%);
+  background-size: 34px 22px;
+  background-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
