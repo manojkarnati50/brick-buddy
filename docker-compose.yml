@@ -6,6 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./backend/data:/data          # SQLite, models, thumbnails, private avatar photos — stays on this machine
+      - nova-cache:/opt/ldraw-nova/.cache   # LDraw Nova's parts index survives restarts (first build takes minutes)
     restart: unless-stopped
 
   frontend:
@@ -22,3 +23,4 @@ services:
 
 volumes:
   certs:
+  nova-cache:

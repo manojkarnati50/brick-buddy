@@ -43,9 +43,16 @@ def parts():
     return _parts
 
 
+def warm_up() -> None:
+    """Index the LDraw library in the background (minutes on first run) so requests never wait for it."""
+    if _status["installed"] and library.available():
+        threading.Thread(target=parts, name="nova-warmup", daemon=True).start()
+
+
 def status() -> dict:
-    parts()
-    return {**_status, "ldraw_dir": str(library.library_dir() or ""), "nova_dir": str(settings.nova_dir or "")}
+    """Never blocks: reports 'loading' while the library index is still being built."""
+    loading = _status["installed"] and library.available() and _parts is None
+    return {**_status, "loading": loading, "ldraw_dir": str(library.library_dir() or ""), "nova_dir": str(settings.nova_dir or "")}
 
 
 def enabled() -> bool:
@@ -53,8 +60,12 @@ def enabled() -> bool:
 
 
 def build(plan: dict) -> tuple[str, list[dict]]:
-    """Return (mpd_text, diagnostics). Diagnostics use LDraw Nova's issue dicts."""
-    p = parts()
+    """Return (mpd_text, diagnostics). Diagnostics use LDraw Nova's issue dicts.
+
+    While the library index is still warming up we use our own writer + stud-grid checks
+    instead of making a child wait minutes.
+    """
+    p = _parts
     if p is None:
         return write_mpd(plan["sections"][0]["name"], plan["sections"], author=plan.get("author", "Brick Buddy")), []
     try:

@@ -29,21 +29,34 @@ export default function App() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api.get<PublicSettings>("/api/settings").then(setSettings),
-      api.get<Catalog>("/api/catalog").then(setCatalog),
-      api.get<Health>("/api/health").then(setHealth),
-      api.get<Record<string, string>>("/api/avatar/art").then(setAvatarArt),
-    ])
-      .then(() => setReady(true))
-      .catch(() => setError(true));
+    let cancelled = false;
+    let timer: number | undefined;
+    const boot = () =>
+      Promise.all([
+        api.get<PublicSettings>("/api/settings").then(setSettings),
+        api.get<Catalog>("/api/catalog").then(setCatalog),
+        api.get<Health>("/api/health").then(setHealth),
+        api.get<Record<string, string>>("/api/avatar/art").then(setAvatarArt),
+      ])
+        .then(() => !cancelled && setReady(true))
+        .catch(() => {
+          // server still starting (or restarting): keep the friendly screen and try again
+          if (cancelled) return;
+          setError(true);
+          timer = window.setTimeout(boot, 3000);
+        });
+    void boot();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [setSettings, setCatalog, setHealth, setAvatarArt]);
 
   if (!ready)
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 bg-cream font-kid">
         <Avatar pose={error ? "pout" : "think"} size={200} />
-        <p className="text-xl font-semibold text-ink/60">{error ? "Brick Buddy is waking up… is the server running?" : "Getting the bricks ready…"}</p>
+        <p className="text-xl font-semibold text-ink/60">{error ? "Brick Buddy is waking up… one moment!" : "Getting the bricks ready…"}</p>
       </div>
     );
 

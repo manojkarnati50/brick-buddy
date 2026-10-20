@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import library
+from . import library, nova
 from .config import settings
 from .db import init_db
 from .routes import backup, generate, inventory, kid, projects, stats, system, voice
@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.INFO)
 @asynccontextmanager
 async def lifespan(_app):
     init_db()
+    nova.warm_up()
     seed_if_empty()
     yield
 
