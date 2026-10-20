@@ -20,7 +20,7 @@ export default function Bedtime() {
       <Avatar pose="hug" size={280} config={undefined} />
       <div className="text-5xl font-bold text-ink/80">Bye-bye! 👋</div>
       <div className="fixed bottom-6 right-6">
-        <HoldButton label="Grown-ups: +10 min" onDone={() => require(async () => { await api.post("/api/usage/extend"); nav("/"); })} />
+        <HoldButton label="Grown-ups: +10 min" onDone={() => require(async () => { await api.post("/api/usage/extend"); nav("/"); }, { held: true })} />
       </div>
       {gate}
     </div>

@@ -12,17 +12,21 @@ import { Modal } from "./ui";
 export function useParentGate() {
   const token = useStore((s) => s.parentToken);
   const [open, setOpen] = useState(false);
+  const [alreadyHeld, setAlreadyHeld] = useState(false);
   const pending = useRef<(() => void) | null>(null);
-  const require = (then: () => void) => {
+  /** `held`: the user already held a HoldButton for 3 s, so go straight to the PIN pad. */
+  const require = (then: () => void, opts?: { held?: boolean }) => {
     if (useStore.getState().parentToken) then();
     else {
       pending.current = then;
+      setAlreadyHeld(Boolean(opts?.held));
       setOpen(true);
     }
   };
   const gate = (
     <ParentGateModal
       open={open}
+      skipHold={alreadyHeld}
       onClose={() => setOpen(false)}
       onUnlocked={() => {
         setOpen(false);
@@ -36,10 +40,18 @@ export function useParentGate() {
 
 export function HoldButton({ onDone, seconds = 3, label = "Grown-ups: hold" }: { onDone: () => void; seconds?: number; label?: string }) {
   const [progress, setProgress] = useState(0);
+  const [hint, setHint] = useState(false);
   const timer = useRef<number | null>(null);
   const start = useRef(0);
   const stop = () => {
-    if (timer.current) cancelAnimationFrame(timer.current);
+    if (timer.current) {
+      // let go too early: show a gentle "keep holding" hint
+      if (performance.now() - start.current < seconds * 1000) {
+        setHint(true);
+        setTimeout(() => setHint(false), 2000);
+      }
+      cancelAnimationFrame(timer.current);
+    }
     timer.current = null;
     setProgress(0);
   };
@@ -55,35 +67,39 @@ export function HoldButton({ onDone, seconds = 3, label = "Grown-ups: hold" }: {
   return (
     <button
       type="button"
-      onPointerDown={() => {
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture?.(e.pointerId); // keep the hold even if the finger drifts
         start.current = performance.now();
+        setHint(false);
         timer.current = requestAnimationFrame(tick);
       }}
       onPointerUp={stop}
-      onPointerLeave={stop}
+      onPointerCancel={stop}
       onContextMenu={(e) => e.preventDefault()}
+      style={{ touchAction: "none", WebkitTouchCallout: "none" }}
       className="relative flex h-14 items-center gap-2 overflow-hidden rounded-full bg-white/80 px-4 text-sm font-semibold text-ink/50 shadow-squish"
     >
       <motion.span className="absolute inset-y-0 left-0 bg-mint" style={{ width: `${progress * 100}%` }} />
       <Icon icon="mdi:lock-outline" className="relative text-xl" />
-      <span className="relative">{label}</span>
+      <span className="relative">{hint ? "Keep holding for 3 seconds…" : progress > 0 ? `Hold… ${Math.ceil(seconds - progress * seconds)}` : label}</span>
     </button>
   );
 }
 
-function ParentGateModal({ open, onClose, onUnlocked }: { open: boolean; onClose: () => void; onUnlocked: () => void }) {
+function ParentGateModal({ open, onClose, onUnlocked, skipHold }: { open: boolean; onClose: () => void; onUnlocked: () => void; skipHold?: boolean }) {
   const [held, setHeld] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const setToken = useStore((s) => s.setParentToken);
 
   useEffect(() => {
-    if (!open) {
+    if (open) setHeld(Boolean(skipHold));
+    else {
       setHeld(false);
       setPin("");
       setError("");
     }
-  }, [open]);
+  }, [open, skipHold]);
 
   const unlockedRef = useRef(onUnlocked);
   unlockedRef.current = onUnlocked;

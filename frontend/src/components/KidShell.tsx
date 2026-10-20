@@ -39,7 +39,7 @@ export default function KidShell({ children, bg = "bg-cream", home = true }: { c
         <div className="flex flex-1 flex-col">{children}</div>
       </div>
       <div className="fixed bottom-4 right-4 opacity-70">
-        <HoldButton label="Grown-ups" onDone={() => require(() => nav("/parent"))} />
+        <HoldButton label="Grown-ups: hold 3 s" onDone={() => require(() => nav("/parent"), { held: true })} />
       </div>
       {gate}
     </div>

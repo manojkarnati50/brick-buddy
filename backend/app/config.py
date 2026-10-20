@@ -14,6 +14,8 @@ def _env(name: str, default: str = "") -> str:
 @dataclass
 class Settings:
     anthropic_api_key: str = field(default_factory=lambda: _env("ANTHROPIC_API_KEY"))
+    # Needed only for API keys that are not scoped to a workspace (sent as the anthropic-workspace-id header)
+    anthropic_workspace_id: str = field(default_factory=lambda: _env("ANTHROPIC_WORKSPACE_ID"))
     sarvam_api_key: str = field(default_factory=lambda: _env("SARVAM_API_KEY"))
     data_dir: Path = field(default_factory=lambda: Path(_env("BRICK_DATA_DIR", str(Path(__file__).resolve().parents[1] / "data"))))
     nova_dir: Path | None = field(default_factory=lambda: Path(_env("LDRAW_NOVA_DIR")) if _env("LDRAW_NOVA_DIR") else None)

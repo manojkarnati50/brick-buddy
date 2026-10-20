@@ -36,7 +36,8 @@ def client() -> anthropic.Anthropic | None:
     if not settings.anthropic_api_key:
         return None
     if _client is None:
-        _client = anthropic.Anthropic(api_key=settings.anthropic_api_key, max_retries=2, timeout=120)
+        headers = {"anthropic-workspace-id": settings.anthropic_workspace_id} if settings.anthropic_workspace_id else None
+        _client = anthropic.Anthropic(api_key=settings.anthropic_api_key, max_retries=2, timeout=120, default_headers=headers)
     return _client
 
 

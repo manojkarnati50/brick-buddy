@@ -117,6 +117,10 @@ def generate(s: Session, *, idea: str, mode: str = "quick", use_inventory: bool 
             except cc.GentleRedirect:
                 idea, best = "rainbow tower", None
                 break
+            except RuntimeError as exc:  # API/network problem: log it for the parent, kid gets a starter
+                log.warning("Claude call failed: %s", exc)
+                info["warnings"].append(str(exc)[:300])
+                break
             info["cost_usd"] += cost
             a = build_kid_plan(kid, max_parts=hi + (0 if strict else extra), available=available, strict=strict, extra=extra)
             if best is None or len(validate.errors(a.issues)) < len(validate.errors(best.issues)):
@@ -139,7 +143,7 @@ def generate(s: Session, *, idea: str, mode: str = "quick", use_inventory: bool 
         # Kid never sees an error: use a hand-made starter that matches her words.
         info["fallback"] = True
         if best is not None:
-            info["warnings"] = [i.get("message") for i in validate.errors(best.issues)][:10]
+            info["warnings"] += [i.get("message") for i in validate.errors(best.issues)][:10]
         best = _starter_for(idea, available, strict, extra)
         narration = best.plan.get("say", "")
     kid = best.plan or {}
