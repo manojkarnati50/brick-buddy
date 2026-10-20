@@ -12,7 +12,9 @@ RUN git clone --depth 1 --branch ${LDRAW_NOVA_TAG} --filter=blob:none --sparse h
     && git sparse-checkout set ldraw_tools examples/building-atlas examples/vehicle-atlas data/offLibShadow
 
 # Official LDraw parts library (needed by LDraw Nova and by the browser's "real parts" view)
-RUN curl -fsSL https://library.ldraw.org/library/updates/complete.zip -o /tmp/complete.zip \
+RUN for i in 1 2 3 4 5 6; do \
+      curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -C - https://library.ldraw.org/library/updates/complete.zip -o /tmp/complete.zip \
+      && unzip -tq /tmp/complete.zip >/dev/null && break; sleep 5; done \
     && unzip -q /tmp/complete.zip -d /opt \
     && rm /tmp/complete.zip
 
